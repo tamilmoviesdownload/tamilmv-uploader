@@ -8,6 +8,14 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 import os
 import re
 import urllib3
+# --- FIX for Python 3.13 (imghdr removed) ---
+import sys, types, mimetypes
+
+if sys.version_info >= (3, 13):
+    sys.modules["imghdr"] = types.SimpleNamespace(
+        what=lambda filename, h=None: mimetypes.guess_type(filename)[0]
+    )
+
 
 # --- DISABLE SSL WARNINGS ---
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
