@@ -8,32 +8,27 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 import os
 import re
 import urllib3
-# --- FIX for Python 3.13 (imghdr removed) ---
-import sys, types, mimetypes
-
-if sys.version_info >= (3, 13):
-    sys.modules["imghdr"] = types.SimpleNamespace(
-        what=lambda filename, h=None: mimetypes.guess_type(filename)[0]
-    )
-
 
 # --- DISABLE SSL WARNINGS ---
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- CONFIG ---
-BOT_TOKEN = '8438175373:AAEblwhwEsLA0xaVe8a2iU_bKZ8tyxtaE0M'
+BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 CHAT_ID = '-1002754017596'
-EARN4LINK_API_KEY = "6f9227c3d0f0e36a049c7edb67de16d4df4c45ae"
+EARN4LINK_API_KEY = os.environ.get('EARN4LINK_API_KEY', '')
 DOWNLOAD_TUTORIAL_LINK = "https://t.me/howtodownloadtlink"
 
 POSTED_FILE = "posted_movies.txt"
 POSTER_FOLDER = "posters"
 
+if not BOT_TOKEN or not EARN4LINK_API_KEY:
+    raise ValueError("BOT_TOKEN and EARN4LINK_API_KEY must be set in environment variables")
+
 bot = telegram.Bot(token=BOT_TOKEN)
 
 # --- FLASK APP ---
 app = Flask(__name__)
-CORS(app)  # ✅ Allow requests from browser or extension
+CORS(app)
 
 # --- HELPERS ---
 def clean_title(raw_title: str) -> str:
@@ -161,6 +156,6 @@ def upload():
     return jsonify({"message": msg})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # ✅ Required by Render
-    print(f"🚀 Server running on port {port}")
-    app.run(host="0.0.0.0", port=port)
+    print("🚀 Server running... Visit a movie page and click the Chrome button!")
+    app.run(host="0.0.0.0", port=8080)
+
