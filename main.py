@@ -3,6 +3,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
+# --- TEMP FIX for Python 3.13 (imghdr removed) ---
+import sys, types
+imghdr = types.ModuleType("imghdr")
+imghdr.what = lambda *args, **kwargs: None
+sys.modules['imghdr'] = imghdr
+# -------------------------------------------------
+
 import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 import os
