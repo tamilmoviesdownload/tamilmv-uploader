@@ -15,6 +15,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 import os
 import re
 import urllib3
+from threading import Thread
 
 # --- DISABLE SSL WARNINGS ---
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -36,6 +37,20 @@ bot = telegram.Bot(token=BOT_TOKEN)
 # --- FLASK APP ---
 app = Flask(__name__)
 CORS(app)
+
+# --- ROOT ROUTE FOR UPTIMEROBOT ---
+@app.route('/')
+def home():
+    return "✅ TamilMV Uploader Bot is alive and running on Render!"
+
+# --- KEEP ALIVE THREAD ---
+def run():
+    app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.daemon = True
+    t.start()
 
 # --- HELPERS ---
 def clean_title(raw_title: str) -> str:
@@ -151,7 +166,7 @@ def process_and_upload(page_url):
         print(f"❌ Error processing {page_url}: {e}")
         return False, f"❌ Error: {e}"
 
-# --- FLASK ROUTE ---
+# --- FLASK ROUTE FOR UPLOAD ---
 @app.route("/upload", methods=["POST"])
 def upload():
     data = request.get_json()
@@ -162,7 +177,9 @@ def upload():
     success, msg = process_and_upload(page_url)
     return jsonify({"message": msg})
 
+# --- MAIN ENTRY ---
 if __name__ == "__main__":
-    print("🚀 Server running... Visit a movie page and click the Chrome button!")
-    app.run(host="0.0.0.0", port=8080)
-
+    print("🚀 TamilMV Uploader Bot is running...")
+    keep_alive()  # keep Render alive
+    while True:
+        pass  # Keeps the process running in background
