@@ -64,7 +64,7 @@ def clean_title(raw_title: str) -> str:
 
 def shorten_link(long_url):
     try:
-        url = f"https://earn4link.in/api?api={EARN4LINK_API_KEY}&url={long_url}"
+        url = f"https://nowshort.com/api?api={EARN4LINK_API_KEY}&url={long_url}"
         response = requests.get(url, timeout=10, verify=False).json()
         if response.get("status") == "success":
             return response["shortenedUrl"]
