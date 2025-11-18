@@ -3,7 +3,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
-
 # --- TEMP FIX for Python 3.13 (imghdr removed) ---
 import sys, types
 imghdr = types.ModuleType("imghdr")
@@ -25,10 +24,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 CHAT_ID = '-1002754017596'
 EARN4LINK_API_KEY = os.environ.get('EARN4LINK_API_KEY', '')
-
-# 🔗 Added Variables (edit anytime)
-CHANNEL_LINK = "https://t.me/+s4wwf5daeWRmOGJl"    # Title tap → goes to channel
-DOWNLOAD_TUTORIAL_LINK = "https://t.me/howtodownloadtlink"  # Tutorial link
+DOWNLOAD_TUTORIAL_LINK = "https://t.me/howtodownloadtlink"
 
 POSTED_FILE = "posted_movies.txt"
 POSTER_FOLDER = "posters"
@@ -42,7 +38,7 @@ bot = telegram.Bot(token=BOT_TOKEN)
 app = Flask(__name__)
 CORS(app)
 
-# --- ROOT ROUTE (for uptime tracking) ---
+# --- ROOT ROUTE FOR UPTIMEROBOT ---
 @app.route('/')
 def home():
     return "✅ TamilMV Uploader Bot is alive and running on Render!"
@@ -97,9 +93,8 @@ def download_poster(soup, title):
     except:
         return None, image_url
 
-# 🔗 Title now has hyperlink (goes to your channel)
 def make_caption(title):
-    return f"""🎬 <b><a href="{CHANNEL_LINK}">{title}</a></b>
+    return f"""🎬 <b>{title}</b>
 
 📘 <b>Download Tutorial 👇</b>
 👉 <a href="{DOWNLOAD_TUTORIAL_LINK}">Click Here</a>"""
@@ -139,7 +134,7 @@ def process_and_upload(page_url):
             print(f"⚠️ No magnet links found for {movie_title}. Skipping.")
             return False, "⚠️ No magnet links found."
 
-        # Telegram inline buttons
+        # Telegram Buttons
         buttons = [InlineKeyboardButton(size, url=link) for size, link in torrent_links]
         rows = [buttons[i:i + 2] for i in range(0, len(buttons), 2)]
         reply_markup = InlineKeyboardMarkup(rows)
@@ -171,7 +166,7 @@ def process_and_upload(page_url):
         print(f"❌ Error processing {page_url}: {e}")
         return False, f"❌ Error: {e}"
 
-# --- FLASK ROUTE ---
+# --- FLASK ROUTE FOR UPLOAD ---
 @app.route("/upload", methods=["POST"])
 def upload():
     data = request.get_json()
@@ -185,6 +180,6 @@ def upload():
 # --- MAIN ENTRY ---
 if __name__ == "__main__":
     print("🚀 TamilMV Uploader Bot is running...")
-    keep_alive()
+    keep_alive()  # keep Render alive
     while True:
-        pass
+        pass  # Keeps the process running in background
