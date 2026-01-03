@@ -32,7 +32,7 @@ if not BOT_TOKEN or not EARN4LINK_API_KEY:
 
 bot = telegram.Bot(token=BOT_TOKEN)
 
-# --- FLASK ---
+# --- FLASK APP ---
 app = Flask(__name__)
 CORS(app)
 
@@ -78,7 +78,7 @@ def shorten_link(url):
     except:
         return url
 
-# --- POSTER ---
+# --- POSTER DOWNLOAD ---
 def download_poster(soup, title):
     os.makedirs(POSTER_FOLDER, exist_ok=True)
     img = soup.find("img", class_="ipsImage")
@@ -103,17 +103,18 @@ def make_caption(title):
 👉 <a href="{DOWNLOAD_TUTORIAL_LINK}">Click Here</a>"""
 
 # --- MAIN PROCESS ---
-def process_and_upload(url):
+def process_and_upload(page_url):
     headers = {"User-Agent": "Mozilla/5.0"}
-    res = requests.get(url, headers=headers, timeout=15, verify=False)
+    res = requests.get(page_url, headers=headers, timeout=15, verify=False)
     soup = BeautifulSoup(res.text, "html.parser")
 
-    raw = soup.find("h1")
-    raw_title = raw.get_text(strip=True) if raw else "Untitled"
+    h1 = soup.find("h1")
+    raw_title = h1.get_text(strip=True) if h1 else "Untitled"
 
     movie_title = clean_title(raw_title)
     poster = download_poster(soup, movie_title)
 
+    # --- TORRENT BUTTONS ---
     torrent_buttons = []
     for a in soup.find_all("a", href=True):
         if "magnet:" in a["href"]:
@@ -123,50 +124,60 @@ def process_and_upload(url):
                 m = re.search(r"(\d+(\.\d+)?\s?(GB|MB))", prev.text, re.I)
                 if m:
                     size = m.group(1)
+
             torrent_buttons.append(
                 InlineKeyboardButton(size, url=shorten_link(a["href"]))
             )
 
     if not torrent_buttons:
-        return False, "No torrents"
+        return False, "No torrents found"
 
-    # --- MAIN BUTTONS ---
+    # --- BUTTON LAYOUT (AS REQUESTED) ---
     tg_link = make_telegram_link(movie_title)
+    buttons = []
 
-    buttons = [
-        [InlineKeyboardButton("Torrent", callback_data="torrent")],
-        [InlineKeyboardButton("Telegram File", url=tg_link)]
-    ]
+    # TOP
+    buttons.append([
+        InlineKeyboardButton("Torrent Files ⏬", callback_data="torrent_files")
+    ])
 
-    # add torrent size buttons
+    # MIDDLE (TORRENT SIZES)
     for i in range(0, len(torrent_buttons), 2):
-        buttons.append(torrent_buttons[i:i+2])
+        buttons.append(torrent_buttons[i:i + 2])
+
+    # BOTTOM
+    buttons.append([
+        InlineKeyboardButton("Telegram File Download 📥", url=tg_link)
+    ])
 
     markup = InlineKeyboardMarkup(buttons)
     caption = make_caption(movie_title)
 
+    # --- SEND ---
     if poster:
         with open(poster, "rb") as p:
             bot.send_photo(
-                CHAT_ID, photo=InputFile(p),
+                chat_id=CHAT_ID,
+                photo=InputFile(p),
                 caption=caption,
                 reply_markup=markup,
                 parse_mode="HTML"
             )
     else:
         bot.send_message(
-            CHAT_ID, caption,
+            chat_id=CHAT_ID,
+            text=caption,
             reply_markup=markup,
             parse_mode="HTML"
         )
 
     return True, "Uploaded"
 
-# --- API ---
+# --- API ROUTE ---
 @app.route("/upload", methods=["POST"])
 def upload():
     data = request.get_json()
-    ok, msg = process_and_upload(data["url"])
+    success, msg = process_and_upload(data["url"])
     return jsonify({"message": msg})
 
 # --- START ---
