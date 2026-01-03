@@ -52,7 +52,7 @@ def clean_title(raw):
 
     remove_words = [
         "tamil", "hq", "predvd", "web-dl", "hdrip", "bluray",
-        "brrip", "dvdrip", "clean", "audio", "true", "uncut"
+        "brrip", "dvdrip", "clean", "audio", "true", "uncut", "esub"
     ]
 
     for w in remove_words:
