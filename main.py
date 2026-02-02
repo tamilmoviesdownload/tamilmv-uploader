@@ -67,7 +67,7 @@ def clean_title(raw):
 # --- TELEGRAM DEEPLINK ---
 def make_telegram_link(title):
     slug = title.lower().replace(" ", "-")
-    return f"https://telegram.me/tamilmovierbot?start=getfile-{slug}"
+    return f"https://telegram.me/movietamtorrentbot?start=getfile-{slug}"
 
 # --- SHORT LINK ---
 def shorten_link(url):
