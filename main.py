@@ -21,7 +21,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- CONFIG ---
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
-CHAT_ID = "-1002754017596"
+CHAT_ID = "-1003731149259"
 EARN4LINK_API_KEY = os.environ.get("EARN4LINK_API_KEY", "")
 DOWNLOAD_TUTORIAL_LINK = "https://t.me/howtodownloadtlink"
 
