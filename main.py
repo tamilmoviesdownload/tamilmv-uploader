@@ -64,6 +64,18 @@ def clean_title(raw):
 
     return t.title()
 
+# --- FONT STYLIZER ---
+def stylize_title(text):
+    """
+    Converts normal text to the stylized font requested:
+    Example: DUDΣ : TΛMIL HD VΣRЅIØN
+    """
+    normal_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    styled_chars = "ΛBСDΣFGHIJKLMИØPQЯЅTЦVШ𝗫Υ𝖹ΛbсdΣfghiјklmиøpqяѕtцvш𝘅ყ𝖳0123456789"
+    
+    mapping = str.maketrans(normal_chars, styled_chars)
+    return text.translate(mapping)
+
 # --- TELEGRAM DEEPLINK ---
 def make_telegram_link(title):
     slug = title.lower().replace(" ", "-")
@@ -97,7 +109,9 @@ def download_poster(soup, title):
 
 # --- CAPTION ---
 def make_caption(title):
-    return f"""🎬 <b>{title}</b>
+    # Apply stylized font specifically to the title in the message body
+    stylized_title_text = stylize_title(title)
+    return f"""🎬 <b>{stylized_title_text}</b>
 
 📘 <b>Download Tutorial 👇</b>
 👉 <a href="{DOWNLOAD_TUTORIAL_LINK}">Click Here</a>"""
