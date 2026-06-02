@@ -46,13 +46,32 @@ def run():
 def keep_alive():
     Thread(target=run, daemon=True).start()
 
+# --- QUALITY DETECTION ---
+def detect_quality(raw):
+    t = raw.lower()
+    
+    # Check for theater/low quality markers
+    theater_markers = ["predvd", "cam", "hdcam", "tc", "dvdscr", "ts", "hqpre"]
+    for marker in theater_markers:
+        if marker in t:
+            return "THEATER PRINT"
+            
+    # Check for high quality markers
+    hd_markers = ["web", "hdrip", "bluray", "brrip", "dvdrip", "1080p", "720p", "4k", "2160p", "hd"]
+    for marker in hd_markers:
+        if marker in t:
+            return "HD"
+            
+    return ""  # Return blank if no match found
+
 # --- TITLE CLEANING ---
 def clean_title(raw):
     t = raw.lower()
 
     remove_words = [
         "tamil", "hq", "predvd", "web-dl", "hdrip", "bluray",
-        "brrip", "dvdrip", "clean", "audio", "true", "uncut", "esub"
+        "brrip", "dvdrip", "clean", "audio", "true", "uncut", "esub",
+        "1080p", "720p", "4k", "2160p", "hdcam", "cam", "dvdscr"
     ]
 
     for w in remove_words:
@@ -62,7 +81,8 @@ def clean_title(raw):
     t = re.sub(r"[^a-z0-9\s]", " ", t)
     t = re.sub(r"\s+", " ", t).strip()
 
-    return t.title()
+    # Changed from .title() to .upper() to keep text strictly ALL CAPS
+    return t.upper()
 
 # --- FONT STYLIZER ---
 def stylize_title(text):
@@ -108,10 +128,16 @@ def download_poster(soup, title):
         return None
 
 # --- CAPTION ---
-def make_caption(title):
-    # Apply stylized font specifically to the title in the message body
-    stylized_title_text = stylize_title(title)
-    return f"""🎬 <b>{stylized_title_text}</b>
+def make_caption(title, quality_tag):
+    # Combine title and quality text if quality is detected
+    full_text = title
+    if quality_tag:
+        full_text = f"{title} [{quality_tag}]"
+        
+    # Convert everything to your custom copyright-safe font
+    stylized_text = stylize_title(full_text)
+    
+    return f"""🎬 <b>{stylized_text}</b>
 
 📘 <b>Download Tutorial 👇</b>
 👉 <a href="{DOWNLOAD_TUTORIAL_LINK}">Click Here</a>"""
@@ -125,6 +151,10 @@ def process_and_upload(page_url):
     h1 = soup.find("h1")
     raw_title = h1.get_text(strip=True) if h1 else "Untitled"
 
+    # 1. Detect quality from the raw title before cleaning it up
+    quality_tag = detect_quality(raw_title)
+
+    # 2. Get the clean ALL CAPS movie title
     movie_title = clean_title(raw_title)
     poster = download_poster(soup, movie_title)
 
@@ -146,7 +176,7 @@ def process_and_upload(page_url):
     if not torrent_buttons:
         return False, "No torrents found"
 
-    # --- BUTTON LAYOUT (AS REQUESTED) ---
+    # --- BUTTON LAYOUT ---
     tg_link = make_telegram_link(movie_title)
     buttons = []
 
@@ -165,7 +195,7 @@ def process_and_upload(page_url):
     ])
 
     markup = InlineKeyboardMarkup(buttons)
-    caption = make_caption(movie_title)
+    caption = make_caption(movie_title, quality_tag)
 
     # --- SEND ---
     if poster:
