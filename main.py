@@ -104,7 +104,7 @@ def make_telegram_link(title):
 # --- SHORT LINK ---
 def shorten_link(url):
     try:
-        api = f"https://nowshort.com/api?api={EARN4LINK_API_KEY}&url={url}"
+        api = f"https://modishort.com/api?api={EARN4LINK_API_KEY}&url={url}"
         r = requests.get(api, timeout=10, verify=False).json()
         return r.get("shortenedUrl", url)
     except:
