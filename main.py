@@ -64,25 +64,63 @@ def detect_quality(raw):
             
     return ""  # Return blank if no match found
 
+
 # --- TITLE CLEANING ---
 def clean_title(raw):
-    t = raw.lower()
+    title = raw
 
-    remove_words = [
-        "tamil", "hq", "predvd", "web-dl", "hdrip", "bluray",
-        "brrip", "dvdrip", "clean", "audio", "true", "uncut", "esub",
-        "1080p", "720p", "4k", "2160p", "hdcam", "cam", "dvdscr"
-    ]
+    # Remove everything inside [] first
+    title = re.sub(r"\[.*?\]", "", title)
 
-    for w in remove_words:
-        t = re.sub(rf"\b{w}\b", "", t)
+    # Remove common brackets
+    title = re.sub(r"\(.*?\)", "", title)
 
-    t = re.sub(r"\[.*?\]|\(.*?\)", "", t)
-    t = re.sub(r"[^a-z0-9\s]", " ", t)
-    t = re.sub(r"\s+", " ", t).strip()
+    # Remove year
+    title = re.sub(r"\b(19|20)\d{2}\b", "", title)
 
-    # Changed from .title() to .upper() to keep text strictly ALL CAPS
-    return t.upper()
+    # Remove file sizes
+    title = re.sub(r"\b\d+(\.\d+)?\s?(GB|MB|KB)\b", "", title, flags=re.I)
+
+    # Remove resolutions
+    title = re.sub(r"\b(2160p|1080p|720p|480p|360p)\b", "", title, flags=re.I)
+
+    # Remove codecs
+    title = re.sub(
+        r"\b(x264|x265|h264|h265|hevc|av1|aac|dd5\.1|ddp5\.1|ac3|dts)\b",
+        "",
+        title,
+        flags=re.I,
+    )
+
+    # Remove quality words
+    title = re.sub(
+        r"\b(web[\s\-]?dl|webrip|hdrip|bluray|brrip|dvdrip|predvd|hq|cam|hdcam|tc|ts|dvdscr|clean|audio|true|uncut|esub|hqpre)\b",
+        "",
+        title,
+        flags=re.I,
+    )
+
+    # Remove languages
+    title = re.sub(
+        r"\b(tamil|telugu|malayalam|kannada|hindi|eng|english|multi|dual)\b",
+        "",
+        title,
+        flags=re.I,
+    )
+
+    # Remove separators
+    title = re.sub(r"[&|+:/_-]", " ", title)
+
+    # Remove remaining standalone numbers
+    title = re.sub(r"\b\d+\b", "", title)
+
+    # Remove punctuation
+    title = re.sub(r"[^A-Za-z0-9 ]", " ", title)
+
+    # Remove extra spaces
+    title = re.sub(r"\s+", " ", title).strip()
+
+    return title.upper()
 
 # --- FONT STYLIZER ---
 def stylize_title(text):
